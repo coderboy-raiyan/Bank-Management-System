@@ -1,8 +1,8 @@
-ACCOUNT_TYPE = (
+ACCOUNT_TYPES = (
     ("Savings", "Savings"),
-    ("Current", "Current"),
+    ("Current", "Current")
 )
-GENDER_TYPE = (
+GENDER_TYPES = (
     ("Male", "Male"),
-    ("Female", "Female"),
+    ("Female", "Female")
 )

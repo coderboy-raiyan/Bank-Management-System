@@ -1,25 +1,23 @@
 from django.db import models
 from django.contrib.auth.models import User
-from . import constants
+from .constants import ACCOUNT_TYPES, GENDER_TYPES
 # Create your models here.
 
 
-class UserBankAccount(models.Model):
-    user = models.OneToOneField(
+class UserBankAccountModel(models.Model):
+    account = models.OneToOneField(
         User, related_name="account", on_delete=models.CASCADE)
-    account_type = models.CharField(
-        max_length=10, choices=constants.ACCOUNT_TYPE)
+    account_type = models.CharField(choices=ACCOUNT_TYPES, max_length=10)
     account_no = models.IntegerField(unique=True)
     birth_date = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=10, choices=constants.GENDER_TYPE)
-    initial_deposit = models.DateField(auto_now_add=True)
-    balance = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    gender = models.CharField(choices=GENDER_TYPES, max_length=10)
+    balance = models.DecimalField(max_digits=12, default=0, decimal_places=2)
 
     def __str__(self) -> str:
         return str(self.account_no)
 
 
-class UserAddress(models.Model):
+class UserAddressModel(models.Model):
     user = models.OneToOneField(
         User, related_name="address", on_delete=models.CASCADE)
     street_address = models.CharField(max_length=100)
