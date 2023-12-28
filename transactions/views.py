@@ -1,5 +1,4 @@
 from typing import Any
-from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404, redirect
 from .models import TransactionModel
 from django.views.generic import CreateView, ListView
@@ -11,8 +10,8 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse
 from datetime import datetime
-from django.utils import timezone
 from django.db.models import Sum
+from .utils.sendEmail import send_transaction_emails
 # Create your views here.
 
 
@@ -58,6 +57,12 @@ class DepositMoneyView(TransactionCreateMixin):
         messages.success(self.request, f'{"{:,.2f}".format(
             float(amount))}$ was deposited to your account successfully')
 
+        send_transaction_emails(
+            self.request.user,
+            self.request.user.email,
+            f"Balance Deposited A/C {account.account_no}",
+            f"""Your deposit request for ${amount} has successfully completed. After depsoit your total amount is{account.balance}""")
+
         return super().form_valid(form)
 
 
@@ -81,6 +86,12 @@ class WithdrawView(TransactionCreateMixin):
 
         messages.success(self.request, f'{"{:,.2f}".format(
             float(amount))}$ was withdrawn to your account successfully')
+
+        send_transaction_emails(
+            self.request.user,
+            self.request.user.email,
+            f"Balance Withdrawal A/C {account.account_no}",
+            f"""Your withdrawal request for ${amount} has successfully completed. After withdraw your total amount is ${account.balance}""")
 
         return super().form_valid(form)
 
@@ -107,6 +118,13 @@ class LoanRequestView(TransactionCreateMixin):
             f'Loan request for {"{:,.2f}".format(
                 float(amount))}$ submitted successfully'
         )
+
+        send_transaction_emails(
+            self.request.user,
+            self.request.user.email,
+            f"Balance Deposited A/C {account.account_no}",
+            f"""Your Loan request for ${amount} has successfully sent to the admin. Wait for admin approval. After getting admin approval you will get the loan and also ge the confirmation mail""")
+
         return super().form_valid(form)
 
 
