@@ -54,8 +54,8 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
 
-        messages.success(self.request, f'{"{:,.2f}".format(
-            float(amount))}$ was deposited to your account successfully')
+        messages.success(self.request, f"""{"{:,.2f}".format(
+            float(amount))}$ was deposited to your account successfully""")
 
         send_transaction_emails(
             self.request.user,
@@ -84,8 +84,8 @@ class WithdrawView(TransactionCreateMixin):
             ]
         )
 
-        messages.success(self.request, f'{"{:,.2f}".format(
-            float(amount))}$ was withdrawn to your account successfully')
+        messages.success(self.request, f"""
+        {"{:,.2f}".format(float(amount))}$ was withdrawn to your account successfully""")
 
         send_transaction_emails(
             self.request.user,
@@ -115,9 +115,7 @@ class LoanRequestView(TransactionCreateMixin):
 
         messages.success(
             self.request,
-            f'Loan request for {"{:,.2f}".format(
-                float(amount))}$ submitted successfully'
-        )
+            f"""Loan request for {"{:,.2f}".format(float(amount))}$ submitted successfully""")
 
         send_transaction_emails(
             self.request.user,
