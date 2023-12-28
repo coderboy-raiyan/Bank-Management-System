@@ -122,7 +122,7 @@ class LoanRequestView(TransactionCreateMixin):
         send_transaction_emails(
             self.request.user,
             self.request.user.email,
-            f"Balance Deposited A/C {account.account_no}",
+            f"Loan request for A/C {account.account_no}",
             f"""Your Loan request for ${amount} has successfully sent to the admin. Wait for admin approval. After getting admin approval you will get the loan and also ge the confirmation mail""")
 
         return super().form_valid(form)
