@@ -17,9 +17,9 @@ class TransactionModelAdmin(admin.ModelAdmin):
 
             send_transaction_emails(
                 obj.account.account,
-                None,
-                f"Loan request has been approved for A/C {
-                    obj.account.account_no}",
+                None, f"""Loan request has
+                been approved for A/C
+                {obj.account.account_no}""",
                 f"""Your Loan request for ${obj.amount} has successfully approved by the admin.And your current balance is ${obj.account.balance}""")
 
         return super().save_model(request, obj, form, change)
