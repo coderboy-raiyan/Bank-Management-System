@@ -1,9 +1,10 @@
 from typing import Any
 from django.db.models.query import QuerySet
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect
 from .models import TransactionModel
 from django.views.generic import CreateView, ListView
-from .constants import DEPOSIT, WITHDRAWAL, LOAN
+from django.views import View
+from .constants import DEPOSIT, WITHDRAWAL, LOAN, LOAN_PAID
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import DepositForm, WithdrawForm, LoanRequestForm
 from django.urls import reverse_lazy
@@ -143,3 +144,37 @@ class TransactionReportView(LoginRequiredMixin, ListView):
         })
 
         return context
+
+
+class PayLoanView(LoginRequiredMixin, View):
+    def get(self, request, loan_id):
+        loan = get_object_or_404(TransactionModel, id=loan_id)
+
+        if loan.loan_approve:
+            user_account = loan.account
+
+            if loan.amount <= user_account.balance:
+                user_account.balance -= loan.amount
+                loan.balance_after_transaction = user_account.balance
+                user_account.save()
+                loan.transaction_type = LOAN_PAID
+                loan.save()
+                messages.success(
+                    self.request, "Loan paid successfully")
+                return redirect("transaction_report")
+            else:
+                messages.error(
+                    self.request, "Loan amount is greater than available balance")
+                return redirect("transaction_report")
+
+
+class LoanListView(LoginRequiredMixin, ListView):
+    model = TransactionModel
+    template_name = "transactions/loan_request.html"
+    context_object_name = "loans"
+
+    def get_queryset(self):
+        user_account = self.request.user.account
+        queryset = TransactionModel.objects.filter(
+            account=user_account, transaction_type=LOAN)
+        return queryset
