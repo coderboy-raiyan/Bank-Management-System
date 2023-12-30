@@ -12,6 +12,7 @@ class UserBankAccountModel(models.Model):
     birth_date = models.DateField(null=True, blank=True)
     gender = models.CharField(choices=GENDER_TYPES, max_length=10)
     balance = models.DecimalField(max_digits=12, default=0, decimal_places=2)
+    isBankrupt = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return str(self.account_no)

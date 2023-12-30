@@ -150,6 +150,12 @@ class WithdrawView(TransactionCreateMixin):
     def form_valid(self, form):
         amount = form.cleaned_data.get('amount')
         account = self.request.user.account
+
+        if account.isBankrupt:
+            messages.error(
+                self.request, f"""Sorry your account has been Bankrupt""")
+            return redirect("profile")
+
         account.balance -= amount
         account.save(
             update_fields=[
