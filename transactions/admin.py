@@ -1,7 +1,9 @@
 from typing import Any
 from django.contrib import admin
-from .models import TransactionModel
+from .models import TransactionModel, MoneyTransferModel
 from .utils.sendEmail import send_transaction_emails
+
+admin.site.register(MoneyTransferModel)
 
 
 @admin.register(TransactionModel)

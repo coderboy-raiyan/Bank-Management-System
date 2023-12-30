@@ -1,17 +1,18 @@
 from typing import Any
 from django.shortcuts import get_object_or_404, redirect
-from .models import TransactionModel
+from .models import TransactionModel, MoneyTransferModel
 from django.views.generic import CreateView, ListView
 from django.views import View
-from .constants import DEPOSIT, WITHDRAWAL, LOAN, LOAN_PAID
+from .constants import DEPOSIT, WITHDRAWAL, LOAN, LOAN_PAID, TRANSFER
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import DepositForm, WithdrawForm, LoanRequestForm
+from .forms import DepositForm, WithdrawForm, LoanRequestForm, MoneyTransferForm
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse
 from datetime import datetime
 from django.db.models import Sum
 from .utils.sendEmail import send_transaction_emails
+from accounts.models import UserBankAccountModel
 # Create your views here.
 
 
@@ -34,6 +35,78 @@ class TransactionCreateMixin(LoginRequiredMixin, CreateView):
             "title": self.title
         })
         return context
+
+
+class MoneyTransferView(LoginRequiredMixin, CreateView):
+    template_name = "transactions/transaction_form.html"
+    model = MoneyTransferModel
+    success_url = reverse_lazy("transaction_report")
+    title = "Money Transfer"
+    form_class = MoneyTransferForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            "account": self.request.user.account
+        })
+        return kwargs
+
+    def get_initial(self):
+        initial = {'transaction_type': TRANSFER,
+                   'account': self.request.user.account}
+        return initial
+
+    def get_context_data(self, **kwargs: Any):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "title": self.title
+        })
+        return context
+
+    def form_valid(self, form):
+        amount = form.cleaned_data.get('amount')
+        receiver_no = form.cleaned_data.get('receiver')
+
+        try:
+            receiver = UserBankAccountModel.objects.get(account_no=receiver_no)
+            if receiver:
+                account = self.request.user.account
+
+                receiver.balance += amount
+                account.balance -= amount
+                account.save(
+                    update_fields=[
+                        'balance'
+                    ]
+                )
+                receiver.save(
+                    update_fields=[
+                        'balance'
+                    ]
+                )
+
+                messages.success(self.request, f"""{"{:,.2f}".format(
+                    float(amount))}$ has been transferred to #{receiver_no}""")
+
+                send_transaction_emails(
+                    self.request.user,
+                    self.request.user.email,
+                    f"Balance Transferred A/C {receiver_no}",
+                    f"""Your transfer request to #{receiver_no} for ${amount} has successfully completed. After transfer your total amount is ${account.balance}""")
+
+                send_transaction_emails(
+                    receiver.account,
+                    receiver.account.email,
+                    f"Money received from A/C # {account.account_no}",
+                    f"""Received ${amount} from #{account.account_no} and your current balance is {receiver.balance}""")
+
+                return super().form_valid(form)
+
+        except UserBankAccountModel.DoesNotExist:
+            messages.error(
+                self.request, f"User not found by this account no # {receiver_no}")
+
+            return redirect("money_transfer")
 
 
 class DepositMoneyView(TransactionCreateMixin):

@@ -1,5 +1,5 @@
 from django import forms
-from .models import TransactionModel
+from .models import TransactionModel, MoneyTransferModel
 
 
 class TransactionForm(forms.ModelForm):
@@ -62,3 +62,20 @@ class LoanRequestForm(TransactionForm):
         amount = self.cleaned_data.get('amount')
 
         return amount
+
+
+class MoneyTransferForm(forms.ModelForm):
+    class Meta:
+        model = MoneyTransferModel
+        fields = ['amount', 'transaction_type', "receiver"]
+
+    def __init__(self, *args, **kwargs):
+        self.account = kwargs.pop('account')
+        super().__init__(*args, **kwargs)
+        self.fields['transaction_type'].disabled = True
+        self.fields['transaction_type'].widget = forms.HiddenInput()
+
+    def save(self, commit=True):
+        self.instance.account = self.account
+        self.instance.balance_after_transaction = self.account.balance
+        return super().save()

@@ -17,3 +17,21 @@ class TransactionModel(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+
+
+class MoneyTransferModel(models.Model):
+    account = models.ForeignKey(
+        UserBankAccountModel, related_name='transfers', on_delete=models.CASCADE)
+    receiver = models.DecimalField(max_digits=12, decimal_places=0)
+    balance_after_transaction = models.DecimalField(
+        decimal_places=2, max_digits=12, null=True, blank=True)
+    transaction_type = models.IntegerField(choices=TRANSACTION_TYPE, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    amount = models.DecimalField(
+        decimal_places=2, max_digits=12, null=True, blank=True)
+
+    class Meta:
+        ordering = ['timestamp']
+
+    def __str__(self) -> str:
+        return str(self.receiver)
