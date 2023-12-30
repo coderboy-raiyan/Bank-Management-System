@@ -83,7 +83,7 @@
       <tr class="bg-gray-800 text-white">
         <th class="px-4 py-2 text-right" colspan="3">Current Balance</th>
         <th class="px-4 py-2 text-left">
-          $ {{ account.balance|floatformat:2|intcomma }}
+          $ {{ request.user.account.balance|floatformat:2|intcomma }}
         </th>
       </tr>
     </tbody>

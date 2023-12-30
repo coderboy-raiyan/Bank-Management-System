@@ -267,3 +267,14 @@ class LoanListView(LoginRequiredMixin, ListView):
         queryset = TransactionModel.objects.filter(
             account=user_account, transaction_type=LOAN)
         return queryset
+
+
+class MoneyTransferListView(LoginRequiredMixin, ListView):
+    model = MoneyTransferModel
+    template_name = "transactions/transaction_report.html"
+
+    def get_queryset(self):
+        user_account = self.request.user.account
+        queryset = MoneyTransferModel.objects.filter(
+            account=user_account, transaction_type=TRANSFER)
+        return queryset
