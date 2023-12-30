@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'accounts',
     'core',
-    'transactions'
+    'transactions',
+    "crispy_forms",
+    "crispy_bootstrap5",
 ]
 
 MIDDLEWARE = [
