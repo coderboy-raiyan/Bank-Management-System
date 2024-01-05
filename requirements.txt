@@ -11,7 +11,6 @@ Pillow
 pipenv
 platformdirs
 protobuf
-psycopg2
 psycopg2-binary
 setuptools
 sqlparse
