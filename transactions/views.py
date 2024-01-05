@@ -1,9 +1,9 @@
 from typing import Any
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from .models import TransactionModel
 from django.views.generic import CreateView, ListView
 from django.views import View
-from .constants import DEPOSIT, WITHDRAWAL, LOAN, LOAN_PAID
+from .constants import DEPOSIT, WITHDRAWAL, LOAN, LOAN_PAID, RECEIVED, TRANSFERRED
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import DepositForm, WithdrawForm, LoanRequestForm
 from django.urls import reverse_lazy
@@ -12,7 +12,9 @@ from django.http import HttpResponse
 from datetime import datetime
 from django.db.models import Sum
 from .utils.sendEmail import send_transaction_emails
+from .forms import MoneyTransferForm
 from accounts.models import UserBankAccountModel
+from transactions.models import TransactionModel
 # Create your views here.
 
 
@@ -202,4 +204,56 @@ class LoanListView(LoginRequiredMixin, ListView):
             account=user_account, transaction_type=LOAN)
         return queryset
 
+
+class MoneyTransferView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        return render(request, "transactions/money_transfer.html", {"form": MoneyTransferForm, "title" : "Money Transfer"})
+
+    def post(self,request):
+        form = MoneyTransferForm(request.POST)
+        
+        if form.is_valid():
+            amount = form.cleaned_data.get("amount")
+            account_no = form.cleaned_data.get("account_no")
+            
+            isBankAccountExists = UserBankAccountModel.objects.filter(account_no=account_no).count()
+            if isBankAccountExists :
+                to_account = UserBankAccountModel.objects.get(account_no=account_no)
+                request.user.account.balance -= amount
+                to_account.balance += amount
+               
+                request.user.account.save()
+                to_account.save()
+
+                TransactionModel.objects.create(
+                    account = request.user.account,
+                    amount = amount,
+                    balance_after_transaction = request.user.account.balance,
+                    transaction_type = TRANSFERRED,
+                )
+                TransactionModel.objects.create(
+                    account = to_account,
+                    amount = amount,
+                    balance_after_transaction = to_account.balance,
+                    transaction_type = RECEIVED,
+                )
+                send_transaction_emails(
+                request.user,
+                request.user.email,
+                f"Successfully money Transferred to A/C {to_account.account_no}",
+                f"""Your ${amount} of money transfer request has been done and your current balance is {request.user.account.balance}""")
+
+                send_transaction_emails(
+                to_account.account,
+                to_account.account.email,
+                f"Money received from A/C {request.user.account.account_no}",
+                f"""Money ${amount} has been received from {request.user.account.account_no} and your current balance is {to_account.balance}""")
+
+                messages.success(request, "Money has been transferred successfully")
+                return redirect("transaction_report")
+            else :
+                messages.error(request, "Sorry no Bank account was found on this number!!")
+
+        return render(request, "transactions/money_transfer.html", {"form": MoneyTransferForm, "title" : "Money Transfer"})
 

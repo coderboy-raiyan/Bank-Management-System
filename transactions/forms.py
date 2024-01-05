@@ -64,3 +64,7 @@ class LoanRequestForm(TransactionForm):
         return amount
 
 
+class MoneyTransferForm(forms.Form):
+    account_no = forms.IntegerField()
+    amount = forms.DecimalField(max_digits=12, decimal_places=2)
+

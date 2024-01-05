@@ -1,5 +1,7 @@
 {% load humanize %}
 
+
+
 <nav class="flex items-center justify-between flex-wrap bg-white p-6 px-10">
     <div class="flex items-center flex-shrink-0 text-white mr-6">
         <span class="font-semibold text-xl tracking-tight text-blue-900"><a href="/">Bank LLC</a></span>
@@ -11,12 +13,15 @@
     </div>
     <!-- Register Login non logged in user er jonne -->
     <!-- Report , Withdraw, Deposit       Profile Logout logged in user -->
-    <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto ">
+    <div class="w-full block  lg:flex lg:items-center lg:w-auto justify-end">
         {% if request.user.is_authenticated %}
             <div class="flex  space-x-6 items-center">
                
                 <a href="{%url 'transaction_report' %}">
                     Report
+                </a>
+                <a href="{%url 'money_transfer' %}">
+                     Transfer
                 </a>
                 <a href="{%url 'deposit' %}" >
                     Deposit
